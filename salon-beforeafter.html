@@ -826,4 +826,101 @@ function generateSNSImage(){
     sc.textAlign='left';
 
     // タイトルバーテキスト
-  
+    sc.fillStyle='#e8c4b0';
+    sc.font='300 38px Georgia';
+    sc.fillText('Before', 40, 52);
+    sc.fillStyle='rgba(255,255,255,.5)';
+    sc.font='300 22px Georgia';
+    sc.fillText('  /  After', 178, 52);
+
+    // 日付・施術名
+    if(r.treatment||r.date){
+      sc.fillStyle='rgba(232,196,176,.7)';
+      sc.font='22px Arial';
+      sc.textAlign='right';
+      const txt=[r.treatment,r.date?fmtDate(r.date):''].filter(Boolean).join('  ');
+      sc.fillText(txt, W-30, 52);
+      sc.textAlign='left';
+    }
+
+    // 下部フッター
+    sc.fillStyle='#2c1f1a';
+    sc.fillRect(0,H-60,W,60);
+    sc.fillStyle='rgba(232,196,176,.5)';
+    sc.font='italic 28px Georgia';
+    sc.textAlign='center';
+    sc.fillText('Beauté', W/2, H-18);
+    sc.textAlign='left';
+
+    snsDataUrl=sns.toDataURL('image/jpeg',0.95);
+    document.getElementById('sns-preview').src=snsDataUrl;
+    showSNSModal();
+  });
+}
+
+function downloadSNSImage(){
+  if(!snsDataUrl)return;
+  const client=clients.find(c=>c.id===currentClientId);
+  const name=client?client.name:'client';
+  // blobに変換してダウンロード（iOSカメラロール対応）
+  fetch(snsDataUrl)
+    .then(r=>r.blob())
+    .then(blob=>{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;
+      a.download=`${name}_beforeafter_sns.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+}
+function fmtDate(d){
+  if(!d)return'—';
+  const[y,m,day]=d.split('-');
+  return `${y}年${m}月${day}日`;
+}
+
+/* ─────── 削除 ─────── */
+function deleteClientPrompt(id){
+  const client=clients.find(c=>c.id===id);
+  if(!client)return;
+
+  const overlay=document.createElement('div');
+  overlay.id='delete-overlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(44,31,26,.6);z-index:600;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)';
+
+  const box=document.createElement('div');
+  box.style.cssText='background:#fff9f5;border-radius:20px;padding:28px 24px;width:100%;max-width:340px;text-align:center;';
+  box.innerHTML=`
+    <div style="font-size:32px;margin-bottom:12px;">🗑</div>
+    <div style="font-family:serif;font-size:20px;margin-bottom:8px;">${client.name}</div>
+    <div style="font-size:13px;color:#9a8880;margin-bottom:24px;line-height:1.6;">この顧客と全施術記録を<br>削除してもよいですか？</div>`;
+
+  const btnDel=document.createElement('button');
+  btnDel.textContent='削除する';
+  btnDel.style.cssText='width:100%;padding:13px;border-radius:12px;border:none;background:#d95f5f;color:#fff;font-size:14px;cursor:pointer;margin-bottom:10px;display:block;';
+  btnDel.addEventListener('click',()=>{
+    clients=clients.filter(c=>c.id!==id);
+    persist();
+    overlay.remove();
+    renderHome();
+  });
+
+  const btnCancel=document.createElement('button');
+  btnCancel.textContent='キャンセル';
+  btnCancel.style.cssText='width:100%;padding:13px;border-radius:12px;border:1.5px solid #e0d4cc;background:none;color:#9a8880;font-size:14px;cursor:pointer;display:block;';
+  btnCancel.addEventListener('click',()=>overlay.remove());
+
+  box.appendChild(btnDel);
+  box.appendChild(btnCancel);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.remove(); });
+}
+
+renderHome();
+</script>
+</body>
+</html>
