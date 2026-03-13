@@ -196,7 +196,8 @@ textarea.form-input{resize:none;height:72px}
     <button class="detail-dl" onclick="downloadLatestPhotos()">↓ 保存</button>
   </div>
   <div style="padding:10px 16px 0;display:flex;gap:8px;">
-    <button class="btn-sns" onclick="generateSNSImage()">📤 SNS用に1枚合成</button>
+    <button class="btn-sns" onclick="generateSNSImage()" style="flex:1;">📤 SNS用に1枚合成</button>
+    <button id="btn-delete-client" style="padding:13px 16px;border-radius:12px;border:none;background:#d95f5f;color:#fff;font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;flex-shrink:0;">🗑 削除</button>
   </div>
   <br>
   <div class="compare-labels"><div class="compare-before">Before</div><div class="compare-after">After</div></div>
@@ -708,7 +709,7 @@ function renderHome(){
     const r=client.records[0]||{};
     const bf=r.before?`<img src="${r.before}" alt="">`:`<span class="photo-empty-icon">🌸</span>`;
     const af=r.after?`<img src="${r.after}" alt="">`:`<span class="photo-empty-icon">✨</span>`;
-    return `<div class="client-card" onclick="openDetail(${client.id})" oncontextmenu="deleteClientPrompt(event,${client.id})" data-id="${client.id}">
+    return `<div class="client-card" onclick="openDetail(${client.id})">
       <div class="card-photos">
         <div class="photo-slot">${bf}<span class="photo-label">BEFORE</span></div>
         <div class="photo-slot">${af}<span class="photo-label">AFTER</span></div>
@@ -719,19 +720,6 @@ function renderHome(){
         <div class="card-badge">${r.treatment||'エステ'}</div>
       </div></div>`;
   }).join('');
-
-  // 長押し削除イベントを各カードに設定
-  document.querySelectorAll('.client-card').forEach(card=>{
-    let timer;
-    card.addEventListener('touchstart',e=>{
-      timer=setTimeout(()=>{
-        const id=parseInt(card.dataset.id);
-        deleteClientPrompt(e,id);
-      },600);
-    });
-    card.addEventListener('touchend',()=>clearTimeout(timer));
-    card.addEventListener('touchmove',()=>clearTimeout(timer));
-  });
 }
 
 /* ─────── DETAIL ─────── */
@@ -747,6 +735,10 @@ function openDetail(id){
     document.getElementById('detail-memo').textContent=r.memo||'—';
     document.getElementById('detail-treatment').textContent=r.treatment||'—';
   }
+  // 削除ボタン
+  const delBtn=document.getElementById('btn-delete-client');
+  delBtn.onclick=()=>deleteClientPrompt(id);
+
   const hel=document.getElementById('history-list');
   hel.innerHTML=client.records.length
     ?client.records.map((r,i)=>`<div class="history-item" onclick="viewRec(${id},${i})">
@@ -902,8 +894,7 @@ function fmtDate(d){
 }
 
 /* ─────── 削除 ─────── */
-function deleteClientPrompt(e, id){
-  e.preventDefault();
+function deleteClientPrompt(id){
   const client=clients.find(c=>c.id===id);
   if(!client)return;
 
@@ -936,4 +927,11 @@ function deleteClientPrompt(e, id){
   box.appendChild(btnDel);
   box.appendChild(btnCancel);
   overlay.appendChild(box);
-  document.
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.remove(); });
+}
+
+renderHome();
+</script>
+</body>
+</html>
