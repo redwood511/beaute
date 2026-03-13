@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Beauté — ビフォーアフター</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:#f9f4ef; --blush:#e8c4b0; --rose:#c4856a; --deep:#2c1f1a;
+  --muted:#9a8880; --card:#fff9f5; --shadow:rgba(44,31,26,0.10);
+  --ok:#5cb87a; --warn:#e8a44a; --ng:#d95f5f;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:var(--cream);font-family:'Noto Sans JP',sans-serif;color:var(--deep);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden}
+
+/* HEADER */
+header{background:var(--deep);padding:20px 24px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;letter-spacing:0.12em;color:var(--blush)}
+.logo span{font-style:italic;color:#fff}
+
+/* SCREENS */
+.screen{display:none;animation:fadeIn .3s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* HOME */
+.home-hero{background:linear-gradient(160deg,var(--deep) 0%,#4a2e25 100%);padding:28px 24px 24px;color:#fff}
+.home-hero h2{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;line-height:1.3;margin-bottom:6px}
+.home-hero p{font-size:12px;color:var(--blush);letter-spacing:.08em}
+.hero-stats{display:flex;gap:16px;margin-top:20px}
+.stat{background:rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;flex:1;border:1px solid rgba(255,255,255,.1)}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--blush)}
+.stat-label{font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.1em;margin-top:2px}
+.section-title{font-size:11px;letter-spacing:.2em;color:var(--muted);padding:18px 24px 10px;text-transform:uppercase}
+.client-list{padding:0 16px 100px;display:flex;flex-direction:column;gap:12px}
+.client-card{background:var(--card);border-radius:16px;overflow:hidden;box-shadow:0 2px 16px var(--shadow);cursor:pointer;transition:transform .2s,box-shadow .2s;border:1px solid rgba(196,133,106,.1)}
+.client-card:active{transform:scale(.98)}
+.card-photos{display:grid;grid-template-columns:1fr 1fr;height:130px;position:relative}
+.photo-slot{background:#ede7e0;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.photo-slot:first-child{border-right:1.5px solid #fff}
+.photo-slot img{width:100%;height:100%;object-fit:cover}
+.photo-label{position:absolute;bottom:6px;left:6px;background:rgba(44,31,26,.65);color:#fff;font-size:9px;letter-spacing:.15em;padding:2px 7px;border-radius:4px}
+.photo-empty-icon{font-size:26px;color:var(--blush);opacity:.45}
+.divider-arrow{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px var(--shadow);z-index:2}
+.card-info{padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+.client-name{font-size:15px;font-weight:400;letter-spacing:.04em}
+.client-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.card-badge{background:var(--blush);color:var(--deep);font-size:10px;padding:3px 9px;border-radius:12px}
+
+/* FAB */
+.fab{position:fixed;bottom:28px;right:24px;width:56px;height:56px;background:var(--rose);border-radius:50%;border:none;color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(196,133,106,.45);cursor:pointer;transition:transform .2s;z-index:200}
+.fab:active{transform:scale(.93)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(44,31,26,.6);z-index:300;align-items:flex-end;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border-radius:24px 24px 0 0;padding:24px 24px 40px;width:100%;animation:slideUp .35s cubic-bezier(.32,.72,0,1);max-height:92vh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 18px}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;margin-bottom:18px}
+.form-group{margin-bottom:16px}
+.form-label{font-size:11px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;margin-bottom:7px;display:block}
+.form-input{width:100%;border:1.5px solid #e8ddd8;border-radius:12px;padding:11px 14px;font-size:15px;font-family:'Noto Sans JP',sans-serif;color:var(--deep);background:#fff;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--rose)}
+textarea.form-input{resize:none;height:72px}
+
+/* PHOTO TRIGGERS */
+.photo-trigger-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.photo-trigger{border:2px dashed #e0d4cc;border-radius:14px;background:#fdf8f5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px 8px;cursor:pointer;transition:border-color .2s,background .2s;position:relative;overflow:hidden;aspect-ratio:3/4}
+.photo-trigger:hover{border-color:var(--rose);background:#fef3ed}
+.photo-trigger img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.pt-badge{position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:.12em;padding:2px 8px;border-radius:4px;z-index:2;color:#fff;pointer-events:none}
+.pt-icon{font-size:26px;z-index:1}
+.pt-label{font-size:11px;color:var(--muted);letter-spacing:.1em;z-index:1}
+.pt-check{position:absolute;top:8px;right:8px;background:var(--ok);color:#fff;border-radius:50%;width:20px;height:20px;display:none;align-items:center;justify-content:center;font-size:11px;z-index:3}
+
+.btn{width:100%;padding:15px;border-radius:14px;border:none;font-size:14px;font-family:'Noto Sans JP',sans-serif;letter-spacing:.1em;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--rose);color:#fff}
+.btn-primary:active{background:#b07560}
+.btn-secondary{background:transparent;color:var(--muted);border:1.5px solid #e0d4cc;margin-top:10px}
+
+/* ═══════════════════════════════
+   GUIDED CAMERA SCREEN
+═══════════════════════════════ */
+#screen-camera{position:fixed;inset:0;background:#000;z-index:500;display:none;flex-direction:column;max-width:none}
+#screen-camera.active{display:flex}
+#cam-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#cam-ghost{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s;pointer-events:none}
+
+/* Grid guide */
+.cam-grid{position:absolute;inset:0;pointer-events:none}
+.cam-grid svg{width:100%;height:100%}
+
+/* Face oval */
+#face-oval{position:absolute;left:50%;top:50%;transform:translate(-50%,-54%);width:52%;aspect-ratio:3/4;border:2px solid rgba(255,255,255,.5);border-radius:50%;pointer-events:none;transition:border-color .4s;box-shadow:0 0 0 9999px rgba(0,0,0,.18)}
+
+/* Top HUD */
+.cam-hud-top{position:absolute;top:0;left:0;right:0;background:linear-gradient(to bottom,rgba(0,0,0,.72) 0%,transparent 100%);padding:48px 20px 20px;display:flex;align-items:flex-start;justify-content:space-between;z-index:10}
+.cam-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px)}
+.cam-mode-badge{background:rgba(44,31,26,.85);border-radius:20px;padding:6px 14px;font-size:12px;letter-spacing:.15em;color:#fff;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(4px)}
+.cam-ghost-toggle{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 12px;font-size:11px;display:flex;align-items:center;gap:5px;cursor:pointer;backdrop-filter:blur(4px)}
+.cam-ghost-toggle.on{background:rgba(232,196,176,.4);border-color:var(--blush)}
+
+/* Indicators */
+.cam-indicators{position:absolute;top:108px;left:12px;right:12px;display:flex;gap:6px;z-index:10}
+.indicator{flex:1;border-radius:10px;padding:7px 6px;background:rgba(0,0,0,.58);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;gap:3px}
+.ind-label{font-size:9px;letter-spacing:.1em;color:rgba(255,255,255,.55)}
+.ind-bar-wrap{width:100%;height:5px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+.ind-bar{height:100%;border-radius:3px;transition:width .35s,background .35s}
+.ind-val{font-size:10px;color:#fff}
+
+/* Level */
+.cam-level{position:absolute;left:50%;transform:translateX(-50%);top:172px;z-index:10;background:rgba(0,0,0,.58);border-radius:20px;padding:5px 12px;backdrop-filter:blur(6px);display:flex;align-items:center;gap:8px}
+.level-track{width:80px;height:8px;background:rgba(255,255,255,.15);border-radius:4px;position:relative}
+.level-bubble{position:absolute;top:-2px;width:12px;height:12px;border-radius:50%;background:#fff;left:50%;transform:translateX(-50%);transition:left .2s,background .2s}
+.level-label{font-size:10px;color:rgba(255,255,255,.75);letter-spacing:.08em;min-width:52px}
+
+/* Instruction toast */
+.cam-instruction{position:absolute;left:12px;right:12px;bottom:165px;z-index:10;background:rgba(0,0,0,.65);border-radius:14px;padding:10px 14px;backdrop-filter:blur(8px);font-size:12px;color:#fff;line-height:1.6;letter-spacing:.04em;display:none}
+.cam-instruction.show{display:block}
+
+/* Step guide (shows before face-oval hint) */
+.cam-step{position:absolute;left:0;right:0;top:50%;transform:translateY(calc(-50% + 120px));z-index:10;text-align:center;pointer-events:none}
+.cam-step-text{display:inline-block;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:7px 18px;font-size:12px;color:#fff;letter-spacing:.08em;backdrop-filter:blur(6px)}
+
+/* Countdown */
+#cam-countdown{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:110px;color:#fff;font-weight:300;z-index:20;opacity:0;pointer-events:none;text-shadow:0 4px 24px rgba(0,0,0,.4)}
+
+/* Flash */
+#cam-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:30;pointer-events:none}
+
+/* Controls */
+.cam-controls{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,transparent 100%);padding:20px 32px 52px;display:flex;align-items:center;justify-content:space-between;z-index:10}
+.cam-gallery-btn{width:48px;height:48px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex-shrink:0}
+.cam-gallery-btn img{width:100%;height:100%;object-fit:cover;display:none}
+.cam-shutter{width:72px;height:72px;border-radius:50%;background:#fff;border:3px solid rgba(255,255,255,.5);box-shadow:0 0 0 6px rgba(255,255,255,.18);cursor:pointer;transition:transform .15s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.cam-shutter:active{transform:scale(.92)}
+.cam-shutter-inner{width:58px;height:58px;border-radius:50%;background:#fff;border:2px solid #ddd}
+.cam-flip{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* DETAIL */
+.detail-header{background:var(--deep);padding:16px 20px;display:flex;align-items:center;gap:12px}
+.back-btn{background:rgba(255,255,255,.12);border:none;color:var(--blush);width:36px;height:36px;border-radius:50%;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.detail-name{font-family:'Cormorant Garamond',serif;font-size:22px;color:#fff;font-weight:300;flex:1}
+.detail-dl{background:rgba(232,196,176,.2);border:1px solid rgba(232,196,176,.3);color:var(--blush);border-radius:20px;padding:6px 14px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer}
+.compare-labels{display:flex;margin:0 16px;border-radius:12px 12px 0 0;overflow:hidden}
+.compare-before{flex:1;text-align:center;padding:7px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;background:var(--deep);color:var(--blush)}
+.compare-after{flex:1;text-align:center;padding:7px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;background:var(--rose);color:#fff}
+.compare-wrap{margin:0 16px 14px;border-radius:0 0 16px 16px;overflow:hidden;box-shadow:0 4px 24px var(--shadow)}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:3px;background:#e0d4cc}
+.side-img{background:#ede7e0;aspect-ratio:3/4;overflow:hidden}
+.side-img img{width:100%;height:100%;object-fit:cover}
+.side-img-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--blush);opacity:.4}
+.detail-info{background:var(--card);margin:0 16px 12px;border-radius:14px;padding:16px;box-shadow:0 2px 12px var(--shadow);display:flex;flex-direction:column;gap:10px}
+.info-row{display:flex;gap:10px;align-items:flex-start}
+.info-icon{font-size:16px;width:22px;flex-shrink:0;margin-top:1px}
+.info-key{font-size:10px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase}
+.info-val{font-size:14px;color:var(--deep);margin-top:1px}
+.history-list{padding:0 16px 100px;display:flex;flex-direction:column;gap:10px}
+.history-item{background:var(--card);border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 8px var(--shadow);cursor:pointer;transition:transform .15s}
+.history-item:active{transform:scale(.98)}
+.history-date{font-size:13px;color:var(--deep)}
+.history-memo{font-size:11px;color:var(--muted);margin-top:2px}
+.empty-state{text-align:center;padding:60px 40px;color:var(--muted)}
+.empty-icon{font-size:52px;margin-bottom:14px;opacity:.4}
+.empty-text{font-size:13px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<header><div class="logo">Beau<span>té</span></div></header>
+
+<!-- HOME -->
+<div id="screen-home" class="screen active">
+  <div class="home-hero">
+    <h2>ビフォー<br>アフター管理</h2>
+    <p>BEAUTY RECORD SYSTEM</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num" id="stat-clients">0</div><div class="stat-label">顧客数</div></div>
+      <div class="stat"><div class="stat-num" id="stat-records">0</div><div class="stat-label">施術記録</div></div>
+    </div>
+  </div>
+  <div class="section-title">顧客リスト</div>
+  <div class="client-list" id="client-list">
+    <div class="empty-state"><div class="empty-icon">✦</div><div class="empty-text">右下の「＋」から<br>顧客を登録してください</div></div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div id="screen-detail" class="screen">
+  <div class="detail-header">
+    <button class="back-btn" onclick="showScreen('home')">‹</button>
+    <div class="detail-name" id="detail-name">—</div>
+    <button class="detail-dl" onclick="downloadLatestPhotos()">↓ 保存</button>
+  </div>
+  <br>
+  <div class="compare-labels"><div class="compare-before">Before</div><div class="compare-after">After</div></div>
+  <div class="compare-wrap">
+    <div class="side-by-side">
+      <div class="side-img" id="detail-before"><div class="side-img-empty">🌸</div></div>
+      <div class="side-img" id="detail-after"><div class="side-img-empty">✨</div></div>
+    </div>
+  </div>
+  <div class="detail-info">
+    <div class="info-row"><div class="info-icon">📅</div><div><div class="info-key">施術日</div><div class="info-val" id="detail-date">—</div></div></div>
+    <div class="info-row"><div class="info-icon">💬</div><div><div class="info-key">メモ</div><div class="info-val" id="detail-memo">—</div></div></div>
+    <div class="info-row"><div class="info-icon">💆</div><div><div class="info-key">施術内容</div><div class="info-val" id="detail-treatment">—</div></div></div>
+  </div>
+  <div class="section-title">施術履歴</div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<button class="fab" onclick="openAddModal()">＋</button>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">新規顧客 / 施術記録</div>
+    <div class="form-group">
+      <label class="form-label">お客様のお名前</label>
+      <input class="form-input" type="text" id="input-name" placeholder="例：田中 花子">
+    </div>
+    <div class="form-group">
+      <label class="form-label">施術日</label>
+      <input class="form-input" type="date" id="input-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">施術内容</label>
+      <input class="form-input" type="text" id="input-treatment" placeholder="例：フェイシャルエステ、脱毛など">
+    </div>
+    <div class="form-group">
+      <label class="form-label">写真撮影（ガイド付き）</label>
+      <div class="photo-trigger-grid">
+        <div class="photo-trigger" id="pt-before" onclick="openCamera('before')">
+          <div class="pt-badge" style="background:rgba(44,31,26,.8)">BEFORE</div>
+          <img id="pt-before-img">
+          <div class="pt-icon" id="pt-before-icon">📷</div>
+          <div class="pt-label" id="pt-before-lbl">ガイド撮影</div>
+          <div class="pt-check" id="pt-before-check">✓</div>
+        </div>
+        <div class="photo-trigger" id="pt-after" onclick="openCamera('after')">
+          <div class="pt-badge" style="background:rgba(196,133,106,.9)">AFTER</div>
+          <img id="pt-after-img">
+          <div class="pt-icon" id="pt-after-icon">📷</div>
+          <div class="pt-label" id="pt-after-lbl">ガイド撮影</div>
+          <div class="pt-check" id="pt-after-check">✓</div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ・コメント</label>
+      <textarea class="form-input" id="input-memo" placeholder="施術内容の詳細、お客様のご感想など"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveRecord()">記録を保存する</button>
+    <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     GUIDED CAMERA
+═══════════════════════════════════════ -->
+<div id="screen-camera">
+  <video id="cam-video" autoplay playsinline muted></video>
+  <img id="cam-ghost" src="" alt="">
+
+  <!-- Grid -->
+  <div class="cam-grid">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <line x1="33.3" y1="0" x2="33.3" y2="100" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
+      <line x1="66.6" y1="0" x2="66.6" y2="100" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
+      <line x1="0" y1="33.3" x2="100" y2="33.3" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
+      <line x1="0" y1="66.6" x2="100" y2="66.6" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
+    </svg>
+  </div>
+
+  <!-- Face oval guide -->
+  <div id="face-oval"></div>
+
+  <!-- Step hint (below oval) -->
+  <div class="cam-step"><div class="cam-step-text" id="cam-step-text">顔を楕円に合わせてください</div></div>
+
+  <!-- HUD top -->
+  <div class="cam-hud-top">
+    <button class="cam-close" onclick="closeCamera()">✕</button>
+    <div class="cam-mode-badge" id="cam-mode-badge">BEFORE</div>
+    <button class="cam-ghost-toggle" id="ghost-toggle-btn" onclick="toggleGhost()" style="display:none">
+      <span>👁</span><span id="ghost-label">重ね表示</span>
+    </button>
+  </div>
+
+  <!-- Indicators -->
+  <div class="cam-indicators">
+    <div class="indicator">
+      <div class="ind-label">明るさ</div>
+      <div class="ind-bar-wrap"><div class="ind-bar" id="bar-brightness" style="width:0%"></div></div>
+      <div class="ind-val" id="val-brightness">—</div>
+    </div>
+    <div class="indicator">
+      <div class="ind-label">距離</div>
+      <div class="ind-bar-wrap"><div class="ind-bar" id="bar-size" style="width:0%"></div></div>
+      <div class="ind-val" id="val-size">—</div>
+    </div>
+    <div class="indicator">
+      <div class="ind-label">傾き</div>
+      <div class="ind-bar-wrap"><div class="ind-bar" id="bar-tilt" style="width:50%"></div></div>
+      <div class="ind-val" id="val-tilt">—</div>
+    </div>
+  </div>
+
+  <!-- Level bubble -->
+  <div class="cam-level">
+    <div class="level-track"><div class="level-bubble" id="level-bubble"></div></div>
+    <div class="level-label" id="level-text">水平確認中</div>
+  </div>
+
+  <!-- Instruction toast -->
+  <div class="cam-instruction" id="cam-instruction"></div>
+
+  <div id="cam-countdown"></div>
+  <div id="cam-flash"></div>
+
+  <!-- Controls -->
+  <div class="cam-controls">
+    <div class="cam-gallery-btn" id="gallery-thumb" onclick="openGalleryPicker()">
+      <img id="gallery-thumb-img">
+      <span id="gallery-thumb-icon">🖼</span>
+    </div>
+    <button class="cam-shutter" onclick="shootPhoto()">
+      <div class="cam-shutter-inner"></div>
+    </button>
+    <button class="cam-flip" onclick="flipCamera()">🔄</button>
+  </div>
+
+  <canvas id="cam-canvas" style="display:none"></canvas>
+  <input type="file" id="gallery-input" accept="image/*" style="display:none" onchange="handleGalleryPick(this)">
+</div>
+
+<script>
+/* ─────── DATA ─────── */
+let clients = JSON.parse(localStorage.getItem('beaute-clients')||'[]');
+let currentClientId = null;
+function persist(){ localStorage.setItem('beaute-clients', JSON.stringify(clients)); }
+
+/* ─────── SCREENS ─────── */
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelector('.fab').style.display = name==='home'?'flex':'none';
+}
+
+/* ─────── MODAL ─────── */
+function openAddModal(){
+  document.getElementById('input-name').value='';
+  document.getElementById('input-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('input-treatment').value='';
+  document.getElementById('input-memo').value='';
+  resetPT('before'); resetPT('after');
+  document.getElementById('modal-add').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal-add').classList.remove('open'); }
+document.getElementById('modal-add').addEventListener('click',e=>{ if(e.target===document.getElementById('modal-add')) closeModal(); });
+
+function resetPT(s){
+  document.getElementById('pt-'+s+'-img').style.display='none';
+  document.getElementById('pt-'+s+'-img').src='';
+  document.getElementById('pt-'+s+'-icon').style.display='';
+  document.getElementById('pt-'+s+'-lbl').style.display='';
+  document.getElementById('pt-'+s+'-check').style.display='none';
+}
+function setPT(s,src){
+  const img=document.getElementById('pt-'+s+'-img');
+  img.src=src; img.style.display='block';
+  document.getElementById('pt-'+s+'-icon').style.display='none';
+  document.getElementById('pt-'+s+'-lbl').style.display='none';
+  document.getElementById('pt-'+s+'-check').style.display='flex';
+}
+
+/* ─────── CAMERA STATE ─────── */
+let camStream=null, camSide='before', facingMode='environment';
+let ghostOn=false, capturedPhotos={before:null,after:null};
+let brightnessLoop=null, tiltCB=null, currentGamma=0;
+const cv=document.getElementById('cam-canvas');
+const cx=cv.getContext('2d');
+
+/* ─────── OPEN CAMERA ─────── */
+async function openCamera(side){
+  camSide=side;
+  // Badge
+  const badge=document.getElementById('cam-mode-badge');
+  badge.textContent = side==='before'?'BEFORE 撮影':'AFTER 撮影';
+  badge.style.background = side==='before'?'rgba(44,31,26,.85)':'rgba(196,133,106,.9)';
+  // Step hint
+  document.getElementById('cam-step-text').textContent =
+    side==='before'?'顔を楕円に合わせてください':'AFTERを撮影（重ね表示で位置を確認）';
+  // Ghost toggle
+  const ghostBtn=document.getElementById('ghost-toggle-btn');
+  if(side==='after'&&capturedPhotos.before){
+    ghostBtn.style.display='flex';
+    document.getElementById('cam-ghost').src=capturedPhotos.before;
+    setGhost(true); // auto-enable ghost for alignment
+  } else {
+    ghostBtn.style.display='none';
+    setGhost(false);
+  }
+  // Gallery thumb
+  const ti=document.getElementById('gallery-thumb-img');
+  const tic=document.getElementById('gallery-thumb-icon');
+  if(capturedPhotos[side]){ ti.src=capturedPhotos[side]; ti.style.display='block'; tic.style.display='none'; }
+  else { ti.style.display='none'; tic.style.display=''; }
+
+  document.getElementById('screen-camera').classList.add('active');
+  closeModal();
+  await startStream();
+  startChecks();
+}
+
+async function startStream(){
+  if(camStream) camStream.getTracks().forEach(t=>t.stop());
+  try {
+    camStream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode, width:{ideal:1920}, height:{ideal:1080}}, audio:false
+    });
+    document.getElementById('cam-video').srcObject=camStream;
+  } catch(e){
+    alert('カメラへのアクセスが許可されていません。\nブラウザの設定からカメラを許可してください。');
+    closeCamera();
+  }
+}
+
+function closeCamera(){
+  stopAll();
+  document.getElementById('screen-camera').classList.remove('active');
+  document.getElementById('modal-add').classList.add('open');
+}
+function stopAll(){
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  if(brightnessLoop){ clearInterval(brightnessLoop); brightnessLoop=null; }
+  if(tiltCB){ window.removeEventListener('deviceorientation',tiltCB); tiltCB=null; }
+}
+function flipCamera(){ facingMode=facingMode==='environment'?'user':'environment'; startStream(); }
+
+/* ─────── GHOST ─────── */
+function toggleGhost(){ setGhost(!ghostOn); }
+function setGhost(on){
+  ghostOn=on;
+  document.getElementById('cam-ghost').style.opacity=on?'0.38':'0';
+  document.getElementById('ghost-toggle-btn').classList.toggle('on',on);
+  document.getElementById('ghost-label').textContent=on?'ON':'重ね表示';
+}
+
+/* ─────── BRIGHTNESS (canvas sampling) ─────── */
+function avgLuma(data){
+  let s=0;
+  for(let i=0;i<data.length;i+=4) s+=0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
+  return s/(data.length/4);
+}
+function sampleVideo(x,y,w,h){
+  cv.width=w; cv.height=h;
+  cx.drawImage(document.getElementById('cam-video'),x,y,w,h,0,0,w,h);
+  return cx.getImageData(0,0,w,h).data;
+}
+
+function checkBrightness(){
+  const v=document.getElementById('cam-video');
+  if(!v.videoWidth) return 128;
+  const d=sampleVideo(0,0,Math.min(80,v.videoWidth),Math.min(60,v.videoHeight));
+  return avgLuma(d);
+}
+
+function updateBrightnessUI(avg){
+  const pct=Math.min(100,Math.round((avg/255)*100));
+  const bar=document.getElementById('bar-brightness');
+  bar.style.width=pct+'%';
+  let lbl,col;
+  if(avg<55){lbl='暗い';col='var(--ng)';}
+  else if(avg<95){lbl='やや暗い';col='var(--warn)';}
+  else if(avg>215){lbl='明るすぎ';col='var(--warn)';}
+  else{lbl='適切 ✓';col='var(--ok)';}
+  bar.style.background=col;
+  document.getElementById('val-brightness').textContent=lbl;
+  return lbl;
+}
+
+/* ─────── DISTANCE (center vs edge luma ratio) ─────── */
+function checkDistance(){
+  const v=document.getElementById('cam-video');
+  if(!v.videoWidth) return 55;
+  const W=v.videoWidth, H=v.videoHeight;
+  const cw=Math.round(W*.22), ch=Math.round(H*.22);
+  const cx0=Math.round(W/2-cw/2), cy0=Math.round(H*.28);
+  const centerLuma=avgLuma(sampleVideo(cx0,cy0,cw,ch));
+  const edgeLuma=avgLuma(sampleVideo(0,0,30,40));
+  const ratio=centerLuma/Math.max(1,edgeLuma);
+  // ratio 1.0-1.5 → ideal face distance
+  return Math.min(100, Math.max(0,(ratio-0.5)*90));
+}
+
+function updateDistanceUI(score){
+  const bar=document.getElementById('bar-size');
+  bar.style.width=score+'%';
+  let lbl,col;
+  if(score<28){lbl='遠すぎ';col='var(--warn)';}
+  else if(score>82){lbl='近すぎ';col='var(--warn)';}
+  else{lbl='適切 ✓';col='var(--ok)';}
+  bar.style.background=col;
+  document.getElementById('val-size').textContent=lbl;
+  return lbl;
+}
+
+/* ─────── TILT ─────── */
+function startTilt(){
+  if(tiltCB) window.removeEventListener('deviceorientation',tiltCB);
+  tiltCB=e=>{
+    currentGamma=e.gamma||0;
+    updateTiltUI(currentGamma);
+  };
+  if(window.DeviceOrientationEvent){
+    if(typeof DeviceOrientationEvent.requestPermission==='function'){
+      DeviceOrientationEvent.requestPermission().then(r=>{
+        if(r==='granted') window.addEventListener('deviceorientation',tiltCB);
+      }).catch(()=>{});
+    } else {
+      window.addEventListener('deviceorientation',tiltCB);
+    }
+  }
+  // Fallback default
+  updateTiltUI(0);
+}
+
+function updateTiltUI(g){
+  const abs=Math.abs(g);
+  const clamped=Math.max(-28,Math.min(28,g));
+  const pos=50+(clamped/28)*44;
+  const bubble=document.getElementById('level-bubble');
+  bubble.style.left=pos+'%';
+  let col,lbl;
+  if(abs<4){col='var(--ok)';lbl='水平 ✓';}
+  else if(abs<13){col='var(--warn)';lbl=g>0?'右傾き':'左傾き';}
+  else{col='var(--ng)';lbl=g>0?'右に傾きすぎ':'左に傾きすぎ';}
+  bubble.style.background=col;
+  document.getElementById('level-text').textContent=lbl;
+  const score=Math.max(0,100-abs*5);
+  const bar=document.getElementById('bar-tilt');
+  bar.style.width=score+'%'; bar.style.background=col;
+  document.getElementById('val-tilt').textContent=abs<4?'水平 ✓':Math.round(abs)+'°';
+  document.getElementById('face-oval').style.borderColor=
+    abs<4?'rgba(92,184,122,.75)':abs<13?'rgba(232,164,74,.85)':'rgba(217,95,95,.85)';
+}
+
+/* ─────── INSTRUCTION TOAST ─────── */
+let lastToast='', toastTimer=null;
+function showToast(msg, color){
+  const el=document.getElementById('cam-instruction');
+  if(msg===lastToast) return;
+  lastToast=msg;
+  el.textContent=msg;
+  el.style.background=color||'rgba(0,0,0,.65)';
+  el.classList.toggle('show',!!msg);
+}
+
+function checkToast(brightness, distLbl, brightLbl){
+  const tilt=Math.abs(currentGamma);
+  if(tilt>13){ showToast('📱 カメラを傾けすぎています。水平にしてください'); return; }
+  if(brightness<55){ showToast('💡 暗すぎます。照明を増やすか明るい場所へ移動してください'); return; }
+  if(brightness>215){ showToast('☀️ 逆光・明るすぎます。光の方向を変えてください'); return; }
+  if(distLbl==='遠すぎ'){ showToast('📏 もう少しカメラを近づけてください'); return; }
+  if(distLbl==='近すぎ'){ showToast('📏 もう少しカメラを離してください'); return; }
+  if(camSide==='after'&&capturedPhotos.before&&!ghostOn){
+    showToast('👁 「重ね表示」でビフォーの位置に合わせられます','rgba(44,31,26,.8)'); return;
+  }
+  showToast('');
+}
+
+/* ─────── MAIN CHECK LOOP ─────── */
+function startChecks(){
+  if(brightnessLoop) clearInterval(brightnessLoop);
+  brightnessLoop=setInterval(()=>{
+    const avg=checkBrightness();
+    const blbl=updateBrightnessUI(avg);
+    const dist=checkDistance();
+    const dlbl=updateDistanceUI(dist);
+    checkToast(avg,dlbl,blbl);
+  }, 850);
+  startTilt();
+}
+
+/* ─────── SHOOT ─────── */
+function shootPhoto(){
+  const v=document.getElementById('cam-video');
+  const flash=document.getElementById('cam-flash');
+  // Flash
+  flash.style.transition='none'; flash.style.opacity='.85';
+  requestAnimationFrame(()=>{ flash.style.transition='opacity .4s'; flash.style.opacity='0'; });
+  // Capture
+  const W=v.videoWidth||1280, H=v.videoHeight||720;
+  cv.width=W; cv.height=H;
+  cx.save();
+  if(facingMode==='user'){ cx.translate(W,0); cx.scale(-1,1); }
+  cx.drawImage(v,0,0,W,H);
+  cx.restore();
+  const data=cv.toDataURL('image/jpeg',.92);
+  capturedPhotos[camSide]=data;
+  setPT(camSide,data);
+
+  if(camSide==='before'){
+    // Auto-advance to after
+    setTimeout(()=>{
+      camSide='after';
+      document.getElementById('cam-mode-badge').textContent='AFTER 撮影';
+      document.getElementById('cam-mode-badge').style.background='rgba(196,133,106,.9)';
+      document.getElementById('cam-step-text').textContent='AFTERを撮影（重ね表示で位置を確認）';
+      // Enable ghost for alignment
+      const gb=document.getElementById('ghost-toggle-btn');
+      gb.style.display='flex';
+      document.getElementById('cam-ghost').src=capturedPhotos.before;
+      setGhost(true);
+      showToast('✅ BEFORE完了！ビフォー写真を半透明で重ねています。同じ位置でAFTERを撮影してください','rgba(92,184,122,.85)');
+    },300);
+  } else {
+    // Done
+    setTimeout(()=>{
+      stopAll();
+      document.getElementById('screen-camera').classList.remove('active');
+      document.getElementById('modal-add').classList.add('open');
+    },500);
+  }
+}
+
+/* ─────── GALLERY FALLBACK ─────── */
+function openGalleryPicker(){ document.getElementById('gallery-input').click(); }
+function handleGalleryPick(inp){
+  const file=inp.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    capturedPhotos[camSide]=e.target.result;
+    setPT(camSide,e.target.result);
+    const ti=document.getElementById('gallery-thumb-img');
+    ti.src=e.target.result; ti.style.display='block';
+    document.getElementById('gallery-thumb-icon').style.display='none';
+    showToast('✅ 写真を選択しました','rgba(92,184,122,.85)');
+  };
+  reader.readAsDataURL(file);
+  inp.value='';
+}
+
+/* ─────── SAVE ─────── */
+function saveRecord(){
+  const name=document.getElementById('input-name').value.trim();
+  if(!name){ alert('お名前を入力してください'); return; }
+  const record={
+    id:Date.now(),
+    date:document.getElementById('input-date').value,
+    treatment:document.getElementById('input-treatment').value.trim(),
+    memo:document.getElementById('input-memo').value.trim(),
+    before:capturedPhotos.before||null,
+    after:capturedPhotos.after||null
+  };
+  let client=clients.find(c=>c.name===name);
+  if(!client){ client={id:Date.now()+1,name,records:[]}; clients.push(client); }
+  client.records.unshift(record);
+  persist();
+  capturedPhotos={before:null,after:null};
+  closeModal(); renderHome();
+}
+
+/* ─────── RENDER HOME ─────── */
+function renderHome(){
+  document.getElementById('stat-clients').textContent=clients.length;
+  document.getElementById('stat-records').textContent=clients.reduce((n,c)=>n+c.records.length,0);
+  const list=document.getElementById('client-list');
+  if(!clients.length){
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">✦</div><div class="empty-text">右下の「＋」から<br>顧客を登録してください</div></div>`;
+    return;
+  }
+  list.innerHTML=clients.map(client=>{
+    const r=client.records[0]||{};
+    const bf=r.before?`<img src="${r.before}" alt="">`:`<span class="photo-empty-icon">🌸</span>`;
+    const af=r.after?`<img src="${r.after}" alt="">`:`<span class="photo-empty-icon">✨</span>`;
+    return `<div class="client-card" onclick="openDetail(${client.id})">
+      <div class="card-photos">
+        <div class="photo-slot">${bf}<span class="photo-label">BEFORE</span></div>
+        <div class="photo-slot">${af}<span class="photo-label">AFTER</span></div>
+        <div class="divider-arrow">→</div>
+      </div>
+      <div class="card-info">
+        <div><div class="client-name">${client.name}</div><div class="client-meta">最終：${r.date?fmtDate(r.date):'未記録'} ／ ${client.records.length}件</div></div>
+        <div class="card-badge">${r.treatment||'エステ'}</div>
+      </div></div>`;
+  }).join('');
+}
+
+/* ─────── DETAIL ─────── */
+function openDetail(id){
+  currentClientId=id;
+  const client=clients.find(c=>c.id===id);
+  document.getElementById('detail-name').textContent=client.name;
+  const r=client.records[0];
+  if(r){
+    setDP('detail-before',r.before,'🌸');
+    setDP('detail-after',r.after,'✨');
+    document.getElementById('detail-date').textContent=r.date?fmtDate(r.date):'—';
+    document.getElementById('detail-memo').textContent=r.memo||'—';
+    document.getElementById('detail-treatment').textContent=r.treatment||'—';
+  }
+  const hel=document.getElementById('history-list');
+  hel.innerHTML=client.records.length
+    ?client.records.map((r,i)=>`<div class="history-item" onclick="viewRec(${id},${i})">
+        <div><div class="history-date">📅 ${r.date?fmtDate(r.date):'日付なし'}</div>
+        <div class="history-memo">${r.treatment||''} ${r.memo?'・'+r.memo.slice(0,24):''}</div></div>
+        <div style="color:var(--blush);font-size:14px">›</div></div>`).join('')
+    :'<div class="empty-state"><div class="empty-text">記録がありません</div></div>';
+  showScreen('detail');
+}
+function setDP(id,src,fb){
+  document.getElementById(id).innerHTML=src?`<img src="${src}" alt="">`:`<div class="side-img-empty">${fb}</div>`;
+}
+function viewRec(id,idx){
+  const r=clients.find(c=>c.id===id).records[idx];
+  setDP('detail-before',r.before,'🌸'); setDP('detail-after',r.after,'✨');
+  document.getElementById('detail-date').textContent=r.date?fmtDate(r.date):'—';
+  document.getElementById('detail-memo').textContent=r.memo||'—';
+  document.getElementById('detail-treatment').textContent=r.treatment||'—';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function downloadLatestPhotos(){
+  const client=clients.find(c=>c.id===currentClientId);
+  if(!client||!client.records[0]){alert('写真がありません');return;}
+  const r=client.records[0];
+  [r.before,r.after].forEach((src,i)=>{
+    if(!src)return;
+    const a=document.createElement('a');
+    a.href=src; a.download=`${client.name}_${r.date}_${i===0?'before':'after'}.jpg`; a.click();
+  });
+}
+function fmtDate(d){
+  if(!d)return'—';
+  const[y,m,day]=d.split('-');
+  return `${y}年${m}月${day}日`;
+}
+
+renderHome();
+</script>
+</body>
+</html>
