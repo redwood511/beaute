@@ -274,84 +274,7 @@ textarea.form-input{resize:none;height:72px}
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     GUIDED CAMERA
-═══════════════════════════════════════ -->
-<div id="screen-camera">
-  <video id="cam-video" autoplay playsinline muted></video>
-  <img id="cam-ghost" src="" alt="">
-
-  <!-- Grid -->
-  <div class="cam-grid">
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <line x1="33.3" y1="0" x2="33.3" y2="100" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
-      <line x1="66.6" y1="0" x2="66.6" y2="100" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
-      <line x1="0" y1="33.3" x2="100" y2="33.3" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
-      <line x1="0" y1="66.6" x2="100" y2="66.6" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
-    </svg>
-  </div>
-
-  <!-- Face oval guide -->
-  <div id="face-oval"></div>
-
-  <!-- Step hint (below oval) -->
-  <div class="cam-step"><div class="cam-step-text" id="cam-step-text">顔を楕円に合わせてください</div></div>
-
-  <!-- HUD top -->
-  <div class="cam-hud-top">
-    <button class="cam-close" onclick="closeCamera()">✕</button>
-    <div class="cam-mode-badge" id="cam-mode-badge">BEFORE</div>
-    <button class="cam-ghost-toggle" id="ghost-toggle-btn" onclick="toggleGhost()" style="display:none">
-      <span>👁</span><span id="ghost-label">重ね表示</span>
-    </button>
-  </div>
-
-  <!-- Indicators -->
-  <div class="cam-indicators">
-    <div class="indicator">
-      <div class="ind-label">明るさ</div>
-      <div class="ind-bar-wrap"><div class="ind-bar" id="bar-brightness" style="width:0%"></div></div>
-      <div class="ind-val" id="val-brightness">—</div>
-    </div>
-    <div class="indicator">
-      <div class="ind-label">距離</div>
-      <div class="ind-bar-wrap"><div class="ind-bar" id="bar-size" style="width:0%"></div></div>
-      <div class="ind-val" id="val-size">—</div>
-    </div>
-    <div class="indicator">
-      <div class="ind-label">傾き</div>
-      <div class="ind-bar-wrap"><div class="ind-bar" id="bar-tilt" style="width:50%"></div></div>
-      <div class="ind-val" id="val-tilt">—</div>
-    </div>
-  </div>
-
-  <!-- Level bubble -->
-  <div class="cam-level">
-    <div class="level-track"><div class="level-bubble" id="level-bubble"></div></div>
-    <div class="level-label" id="level-text">水平確認中</div>
-  </div>
-
-  <!-- Instruction toast -->
-  <div class="cam-instruction" id="cam-instruction"></div>
-
-  <div id="cam-countdown"></div>
-  <div id="cam-flash"></div>
-
-  <!-- Controls -->
-  <div class="cam-controls">
-    <div class="cam-gallery-btn" id="gallery-thumb" onclick="openGalleryPicker()">
-      <img id="gallery-thumb-img">
-      <span id="gallery-thumb-icon">🖼</span>
-    </div>
-    <button class="cam-shutter" onclick="shootPhoto()">
-      <div class="cam-shutter-inner"></div>
-    </button>
-    <button class="cam-flip" onclick="flipCamera()">🔄</button>
-  </div>
-
-  <canvas id="cam-canvas" style="display:none"></canvas>
-  <input type="file" id="gallery-input" accept="image/*" style="display:none" onchange="handleGalleryPick(this)">
-</div>
+<!-- カメラ画面はJSで動的に生成 -->
 
 <script>
 /* ─────── DATA ─────── */
@@ -397,37 +320,91 @@ function setPT(s,src){
 let camStream=null, camSide='before', facingMode='environment';
 let ghostOn=false, capturedPhotos={before:null,after:null};
 let brightnessLoop=null, tiltCB=null, currentGamma=0;
-const cv=document.getElementById('cam-canvas');
-const cx=cv.getContext('2d');
+let cv=null, cx=null;
+
+function buildCameraDOM(){
+  const el=document.createElement('div');
+  el.id='screen-camera';
+  el.style.cssText='position:fixed;inset:0;background:#000;z-index:500;display:flex;flex-direction:column;max-width:none;';
+  el.innerHTML=`
+    <video id="cam-video" autoplay playsinline muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>
+    <img id="cam-ghost" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s;pointer-events:none;">
+    <div style="position:absolute;inset:0;pointer-events:none;">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:100%;">
+        <line x1="33.3" y1="0" x2="33.3" y2="100" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
+        <line x1="66.6" y1="0" x2="66.6" y2="100" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
+        <line x1="0" y1="33.3" x2="100" y2="33.3" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
+        <line x1="0" y1="66.6" x2="100" y2="66.6" stroke="rgba(255,255,255,.15)" stroke-width=".3"/>
+      </svg>
+    </div>
+    <div id="face-oval" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-54%);width:52%;aspect-ratio:3/4;border:2px solid rgba(255,255,255,.5);border-radius:50%;pointer-events:none;transition:border-color .4s;"></div>
+    <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(calc(-50% + 120px));text-align:center;pointer-events:none;">
+      <span id="cam-step-text" style="display:inline-block;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:7px 18px;font-size:12px;color:#fff;letter-spacing:.08em;">顔を楕円に合わせてください</span>
+    </div>
+    <div style="position:absolute;top:0;left:0;right:0;background:linear-gradient(to bottom,rgba(0,0,0,.72),transparent);padding:48px 20px 20px;display:flex;align-items:flex-start;justify-content:space-between;z-index:10;">
+      <button onclick="closeCamera()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;">✕</button>
+      <div id="cam-mode-badge" style="background:rgba(44,31,26,.85);border-radius:20px;padding:6px 14px;font-size:12px;letter-spacing:.15em;color:#fff;border:1px solid rgba(255,255,255,.2);">BEFORE</div>
+      <button id="ghost-toggle-btn" onclick="toggleGhost()" style="display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 12px;font-size:11px;align-items:center;gap:5px;cursor:pointer;">👁 <span id="ghost-label">重ね表示</span></button>
+    </div>
+    <div style="position:absolute;top:108px;left:12px;right:12px;display:flex;gap:6px;z-index:10;">
+      <div class="indicator"><div class="ind-label">明るさ</div><div class="ind-bar-wrap"><div class="ind-bar" id="bar-brightness" style="width:0%"></div></div><div class="ind-val" id="val-brightness">—</div></div>
+      <div class="indicator"><div class="ind-label">距離</div><div class="ind-bar-wrap"><div class="ind-bar" id="bar-size" style="width:0%"></div></div><div class="ind-val" id="val-size">—</div></div>
+      <div class="indicator"><div class="ind-label">傾き</div><div class="ind-bar-wrap"><div class="ind-bar" id="bar-tilt" style="width:50%"></div></div><div class="ind-val" id="val-tilt">—</div></div>
+    </div>
+    <div style="position:absolute;left:50%;transform:translateX(-50%);top:172px;z-index:10;background:rgba(0,0,0,.58);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:8px;">
+      <div style="width:80px;height:8px;background:rgba(255,255,255,.15);border-radius:4px;position:relative;"><div id="level-bubble" style="position:absolute;top:-2px;width:12px;height:12px;border-radius:50%;background:#fff;left:50%;transform:translateX(-50%);transition:left .2s,background .2s;"></div></div>
+      <div id="level-text" style="font-size:10px;color:rgba(255,255,255,.75);letter-spacing:.08em;min-width:52px;">水平確認中</div>
+    </div>
+    <div id="cam-instruction" style="display:none;position:absolute;left:12px;right:12px;bottom:165px;z-index:10;background:rgba(0,0,0,.65);border-radius:14px;padding:10px 14px;font-size:12px;color:#fff;line-height:1.6;"></div>
+    <div id="cam-flash" style="position:absolute;inset:0;background:#fff;opacity:0;z-index:30;pointer-events:none;"></div>
+    <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.85),transparent);padding:20px 32px 52px;display:flex;align-items:center;justify-content:space-between;z-index:10;">
+      <div id="gallery-thumb" onclick="openGalleryPicker()" style="width:48px;height:48px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex-shrink:0;">
+        <img id="gallery-thumb-img" style="width:100%;height:100%;object-fit:cover;display:none;">
+        <span id="gallery-thumb-icon">🖼</span>
+      </div>
+      <button onclick="shootPhoto()" style="width:72px;height:72px;border-radius:50%;background:#fff;border:3px solid rgba(255,255,255,.5);box-shadow:0 0 0 6px rgba(255,255,255,.18);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+        <div style="width:58px;height:58px;border-radius:50%;background:#fff;border:2px solid #ddd;"></div>
+      </button>
+      <button onclick="flipCamera()" style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;flex-shrink:0;">🔄</button>
+    </div>
+    <canvas id="cam-canvas" style="display:none;"></canvas>
+    <input type="file" id="gallery-input" accept="image/*" style="display:none;" onchange="handleGalleryPick(this)">
+  `;
+  document.body.appendChild(el);
+  cv=document.getElementById('cam-canvas');
+  cx=cv.getContext('2d');
+}
+
+function destroyCameraDOM(){
+  const el=document.getElementById('screen-camera');
+  if(el) el.remove();
+  cv=null; cx=null;
+}
 
 /* ─────── OPEN CAMERA ─────── */
 async function openCamera(side){
   camSide=side;
-  // Badge
-  const badge=document.getElementById('cam-mode-badge');
-  badge.textContent = side==='before'?'BEFORE 撮影':'AFTER 撮影';
-  badge.style.background = side==='before'?'rgba(44,31,26,.85)':'rgba(196,133,106,.9)';
-  // Step hint
-  document.getElementById('cam-step-text').textContent =
-    side==='before'?'顔を楕円に合わせてください':'AFTERを撮影（重ね表示で位置を確認）';
-  // Ghost toggle
+  closeModal();
+  buildCameraDOM();
+
+  document.getElementById('cam-mode-badge').textContent = side==='before'?'BEFORE 撮影':'AFTER 撮影';
+  document.getElementById('cam-mode-badge').style.background = side==='before'?'rgba(44,31,26,.85)':'rgba(196,133,106,.9)';
+  document.getElementById('cam-step-text').textContent = side==='before'?'顔を楕円に合わせてください':'AFTERを撮影（重ね表示で位置を確認）';
+
   const ghostBtn=document.getElementById('ghost-toggle-btn');
   if(side==='after'&&capturedPhotos.before){
     ghostBtn.style.display='flex';
     document.getElementById('cam-ghost').src=capturedPhotos.before;
-    setGhost(true); // auto-enable ghost for alignment
+    setGhost(true);
   } else {
     ghostBtn.style.display='none';
     setGhost(false);
   }
-  // Gallery thumb
   const ti=document.getElementById('gallery-thumb-img');
   const tic=document.getElementById('gallery-thumb-icon');
   if(capturedPhotos[side]){ ti.src=capturedPhotos[side]; ti.style.display='block'; tic.style.display='none'; }
   else { ti.style.display='none'; tic.style.display=''; }
 
-  document.getElementById('screen-camera').classList.add('active');
-  closeModal();
   await startStream();
   startChecks();
 }
@@ -447,7 +424,7 @@ async function startStream(){
 
 function closeCamera(){
   stopAll();
-  document.getElementById('screen-camera').classList.remove('active');
+  destroyCameraDOM();
   document.getElementById('modal-add').classList.add('open');
 }
 function stopAll(){
@@ -653,7 +630,7 @@ function shootPhoto(){
     // Done
     setTimeout(()=>{
       stopAll();
-      document.getElementById('screen-camera').classList.remove('active');
+      destroyCameraDOM();
       document.getElementById('modal-add').classList.add('open');
     },500);
   }
@@ -849,88 +826,4 @@ function generateSNSImage(){
     sc.textAlign='left';
 
     // タイトルバーテキスト
-    sc.fillStyle='#e8c4b0';
-    sc.font='300 38px Georgia';
-    sc.fillText('Before', 40, 52);
-    sc.fillStyle='rgba(255,255,255,.5)';
-    sc.font='300 22px Georgia';
-    sc.fillText('  /  After', 178, 52);
-
-    // 日付・施術名
-    if(r.treatment||r.date){
-      sc.fillStyle='rgba(232,196,176,.7)';
-      sc.font='22px Arial';
-      sc.textAlign='right';
-      const txt=[r.treatment,r.date?fmtDate(r.date):''].filter(Boolean).join('  ');
-      sc.fillText(txt, W-30, 52);
-      sc.textAlign='left';
-    }
-
-    // 下部フッター
-    sc.fillStyle='#2c1f1a';
-    sc.fillRect(0,H-60,W,60);
-    sc.fillStyle='rgba(232,196,176,.5)';
-    sc.font='italic 28px Georgia';
-    sc.textAlign='center';
-    sc.fillText('Beauté', W/2, H-18);
-    sc.textAlign='left';
-
-    snsDataUrl=sns.toDataURL('image/jpeg',0.95);
-    document.getElementById('sns-preview').src=snsDataUrl;
-    showSNSModal();
-  });
-}
-
-function downloadSNSImage(){
-  if(!snsDataUrl)return;
-  const client=clients.find(c=>c.id===currentClientId);
-  const name=client?client.name:'client';
-  // blobに変換してダウンロード（iOSカメラロール対応）
-  fetch(snsDataUrl)
-    .then(r=>r.blob())
-    .then(blob=>{
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url;
-      a.download=`${name}_beforeafter_sns.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
-}
-function fmtDate(d){
-  if(!d)return'—';
-  const[y,m,day]=d.split('-');
-  return `${y}年${m}月${day}日`;
-}
-
-/* ─────── 削除 ─────── */
-function deleteClientPrompt(id){
-  const client=clients.find(c=>c.id===id);
-  if(!client)return;
-
-  const overlay=document.createElement('div');
-  overlay.id='delete-overlay';
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(44,31,26,.6);z-index:600;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)';
-
-  const box=document.createElement('div');
-  box.style.cssText='background:#fff9f5;border-radius:20px;padding:28px 24px;width:100%;max-width:340px;text-align:center;';
-  box.innerHTML=`
-    <div style="font-size:32px;margin-bottom:12px;">🗑</div>
-    <div style="font-family:serif;font-size:20px;margin-bottom:8px;">${client.name}</div>
-    <div style="font-size:13px;color:#9a8880;margin-bottom:24px;line-height:1.6;">この顧客と全施術記録を<br>削除してもよいですか？</div>`;
-
-  const btnDel=document.createElement('button');
-  btnDel.textContent='削除する';
-  btnDel.style.cssText='width:100%;padding:13px;border-radius:12px;border:none;background:#d95f5f;color:#fff;font-size:14px;cursor:pointer;margin-bottom:10px;display:block;';
-  btnDel.addEventListener('click',()=>{
-    clients=clients.filter(c=>c.id!==id);
-    persist();
-    overlay.remove();
-    renderHome();
-  });
-
-  const btnCancel=document.createElement('button');
-  btnCancel.textContent='キャンセル';
-  btnCancel
+  
