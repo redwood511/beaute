@@ -708,7 +708,7 @@ function renderHome(){
     const r=client.records[0]||{};
     const bf=r.before?`<img src="${r.before}" alt="">`:`<span class="photo-empty-icon">🌸</span>`;
     const af=r.after?`<img src="${r.after}" alt="">`:`<span class="photo-empty-icon">✨</span>`;
-    return `<div class="client-card" onclick="openDetail(${client.id})">
+    return `<div class="client-card" onclick="openDetail(${client.id})" oncontextmenu="deleteClientPrompt(event,${client.id})" data-id="${client.id}">
       <div class="card-photos">
         <div class="photo-slot">${bf}<span class="photo-label">BEFORE</span></div>
         <div class="photo-slot">${af}<span class="photo-label">AFTER</span></div>
@@ -719,6 +719,19 @@ function renderHome(){
         <div class="card-badge">${r.treatment||'エステ'}</div>
       </div></div>`;
   }).join('');
+
+  // 長押し削除イベントを各カードに設定
+  document.querySelectorAll('.client-card').forEach(card=>{
+    let timer;
+    card.addEventListener('touchstart',e=>{
+      timer=setTimeout(()=>{
+        const id=parseInt(card.dataset.id);
+        deleteClientPrompt(e,id);
+      },600);
+    });
+    card.addEventListener('touchend',()=>clearTimeout(timer));
+    card.addEventListener('touchmove',()=>clearTimeout(timer));
+  });
 }
 
 /* ─────── DETAIL ─────── */
@@ -886,6 +899,34 @@ function fmtDate(d){
   if(!d)return'—';
   const[y,m,day]=d.split('-');
   return `${y}年${m}月${day}日`;
+}
+
+/* ─────── 削除 ─────── */
+function deleteClientPrompt(e, id){
+  e.preventDefault();
+  const client=clients.find(c=>c.id===id);
+  if(!client)return;
+  // 削除確認モーダルを表示
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(44,31,26,.6);z-index:600;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)';
+  overlay.innerHTML=`
+    <div style="background:#fff9f5;border-radius:20px;padding:28px 24px;width:100%;max-width:340px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:12px;">🗑</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;margin-bottom:8px;">${client.name}</div>
+      <div style="font-size:13px;color:#9a8880;margin-bottom:24px;line-height:1.6;">この顧客と全施術記録を<br>削除してもよいですか？</div>
+      <button onclick="deleteClient(${id},this)" style="width:100%;padding:13px;border-radius:12px;border:none;background:#d95f5f;color:#fff;font-size:14px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;margin-bottom:10px;">削除する</button>
+      <button onclick="this.closest('div[style]').remove()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid #e0d4cc;background:none;color:#9a8880;font-size:14px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;">キャンセル</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.remove(); });
+}
+
+function deleteClient(id, btn){
+  clients=clients.filter(c=>c.id!==id);
+  persist();
+  // モーダルを閉じる
+  btn.closest('div[style*="position:fixed"]').remove();
+  renderHome();
 }
 
 renderHome();
