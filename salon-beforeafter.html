@@ -208,8 +208,8 @@ textarea.form-input{resize:none;height:72px}
     </div>
   </div>
   <!-- SNSプレビューモーダル -->
-  <div id="sns-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;padding:24px;overflow-y:auto;pointer-events:none;">
-    <div style="background:#fff;border-radius:20px;overflow:hidden;max-width:420px;margin:40px auto;pointer-events:auto;">
+  <div id="sns-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;padding:24px;overflow-y:auto;">
+    <div style="background:#fff;border-radius:20px;overflow:hidden;max-width:420px;margin:40px auto;">
       <img id="sns-preview" style="width:100%;display:block;">
       <div style="padding:16px;display:flex;flex-direction:column;gap:10px;">
         <div style="font-size:12px;color:#9a8880;text-align:center;letter-spacing:.05em;">ダウンロード後、写真アプリからSNSに投稿できます</div>
@@ -227,7 +227,7 @@ textarea.form-input{resize:none;height:72px}
   <div class="history-list" id="history-list"></div>
 </div>
 
-<button class="fab" onclick="openAddModal()">＋</button>
+<button class="fab" id="fab-btn">＋</button>
 
 <!-- ADD MODAL -->
 <div class="modal-overlay" id="modal-add">
@@ -281,6 +281,9 @@ textarea.form-input{resize:none;height:72px}
 let clients = JSON.parse(localStorage.getItem('beaute-clients')||'[]');
 let currentClientId = null;
 function persist(){ localStorage.setItem('beaute-clients', JSON.stringify(clients)); }
+
+// FABイベント
+document.getElementById('fab-btn').addEventListener('click', openAddModal);
 
 /* ─────── SCREENS ─────── */
 function showScreen(name){
@@ -761,8 +764,8 @@ function downloadLatestPhotos(){
   });
 }
 
-function showSNSModal(){ const m=document.getElementById('sns-modal'); m.style.display='block'; m.style.pointerEvents='auto'; }
-function hideSNSModal(){ const m=document.getElementById('sns-modal'); m.style.display='none'; m.style.pointerEvents='none'; }
+function showSNSModal(){ const m=document.getElementById('sns-modal'); m.style.display='block'; }
+function hideSNSModal(){ const m=document.getElementById('sns-modal'); m.style.display='none'; }
 
 /* ─────── SNS用1枚合成 ─────── */
 let snsDataUrl = null;
@@ -931,4 +934,7 @@ function deleteClientPrompt(id){
   box.appendChild(btnCancel);
   overlay.appendChild(box);
   document.body.appendChild(overlay);
-  overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.remove
+  overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.remove(); });
+}
+
+renderHome();
