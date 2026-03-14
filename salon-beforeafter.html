@@ -338,7 +338,7 @@ function buildCameraDOM(){
       </svg>
     </div>
     <div id="face-oval" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-54%);width:52%;aspect-ratio:3/4;border:2px solid rgba(255,255,255,.5);border-radius:50%;pointer-events:none;transition:border-color .4s;"></div>
-    <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(calc(-50% + 120px));text-align:center;pointer-events:none;">
+    <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(calc(-50% + 120px));text-align:center;pointer-events:none;z-index:10;">
       <span id="cam-step-text" style="display:inline-block;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:7px 18px;font-size:12px;color:#fff;letter-spacing:.08em;">顔を楕円に合わせてください</span>
     </div>
     <div style="position:absolute;top:0;left:0;right:0;background:linear-gradient(to bottom,rgba(0,0,0,.72),transparent);padding:48px 20px 20px;display:flex;align-items:flex-start;justify-content:space-between;z-index:10;">
@@ -346,12 +346,12 @@ function buildCameraDOM(){
       <div id="cam-mode-badge" style="background:rgba(44,31,26,.85);border-radius:20px;padding:6px 14px;font-size:12px;letter-spacing:.15em;color:#fff;border:1px solid rgba(255,255,255,.2);">BEFORE</div>
       <button id="ghost-toggle-btn" style="display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 12px;font-size:11px;align-items:center;gap:5px;cursor:pointer;">👁 <span id="ghost-label">重ね表示</span></button>
     </div>
-    <div style="position:absolute;top:108px;left:12px;right:12px;display:flex;gap:6px;z-index:10;">
+    <div style="position:absolute;top:108px;left:12px;right:12px;display:flex;gap:6px;z-index:10;pointer-events:none;">
       <div class="indicator"><div class="ind-label">明るさ</div><div class="ind-bar-wrap"><div class="ind-bar" id="bar-brightness" style="width:0%"></div></div><div class="ind-val" id="val-brightness">—</div></div>
       <div class="indicator"><div class="ind-label">距離</div><div class="ind-bar-wrap"><div class="ind-bar" id="bar-size" style="width:0%"></div></div><div class="ind-val" id="val-size">—</div></div>
       <div class="indicator"><div class="ind-label">傾き</div><div class="ind-bar-wrap"><div class="ind-bar" id="bar-tilt" style="width:50%"></div></div><div class="ind-val" id="val-tilt">—</div></div>
     </div>
-    <div style="position:absolute;left:50%;transform:translateX(-50%);top:172px;z-index:10;background:rgba(0,0,0,.58);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:8px;">
+    <div style="position:absolute;left:50%;transform:translateX(-50%);top:172px;z-index:10;background:rgba(0,0,0,.58);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:8px;pointer-events:none;">
       <div style="width:80px;height:8px;background:rgba(255,255,255,.15);border-radius:4px;position:relative;"><div id="level-bubble" style="position:absolute;top:-2px;width:12px;height:12px;border-radius:50%;background:#fff;left:50%;transform:translateX(-50%);transition:left .2s,background .2s;"></div></div>
       <div id="level-text" style="font-size:10px;color:rgba(255,255,255,.75);letter-spacing:.08em;min-width:52px;">水平確認中</div>
     </div>
@@ -931,10 +931,4 @@ function deleteClientPrompt(id){
   box.appendChild(btnCancel);
   overlay.appendChild(box);
   document.body.appendChild(overlay);
-  overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.remove(); });
-}
-
-renderHome();
-</script>
-</body>
-</html>
+  overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.remove
