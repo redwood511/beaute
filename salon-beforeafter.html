@@ -648,4 +648,42 @@ function generateSNSImage(){
     img.src=src;
   }
 
-  pending=
+  pending=2;
+  drawImg(r.before, 0);
+  drawImg(r.after, 544);
+}
+
+/* ── イベント設定 ── */
+document.getElementById('fab-btn').addEventListener('click', openAddModal);
+
+document.getElementById('modal-add').addEventListener('click', function(e){
+  if(e.target===this) closeModal();
+});
+document.getElementById('cancel-btn').addEventListener('click', closeModal);
+document.getElementById('save-btn').addEventListener('click', saveRecord);
+
+document.getElementById('pt-before').addEventListener('click', function(){ openCamera('before'); });
+document.getElementById('pt-after').addEventListener('click',  function(){ openCamera('after');  });
+
+document.getElementById('back-btn').addEventListener('click', function(){ showScreen('home'); });
+document.getElementById('dl-btn').addEventListener('click', downloadLatestPhotos);
+document.getElementById('sns-btn').addEventListener('click', generateSNSImage);
+document.getElementById('delete-btn').addEventListener('click', function(){ deleteClientConfirm(currentClientId); });
+
+document.getElementById('modal-sns').addEventListener('click', function(e){
+  if(e.target===this) document.getElementById('modal-sns').classList.remove('open');
+});
+document.getElementById('sns-close-btn').addEventListener('click', function(){
+  document.getElementById('modal-sns').classList.remove('open');
+});
+document.getElementById('sns-dl-btn').addEventListener('click', function(){
+  if(!snsDataUrl) return;
+  var client=clients.filter(function(c){ return c.id===currentClientId; })[0];
+  autoSave(snsDataUrl, (client?client.name:'client')+'_sns.jpg');
+});
+
+/* ── 初期化 ── */
+renderHome();
+</script>
+</body>
+</html>
