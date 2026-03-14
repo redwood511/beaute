@@ -406,6 +406,16 @@ function buildCamUI(){
   video.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
   wrap.appendChild(video);
 
+  // ゴースト画像（AFTER撮影時にBEFORE写真を半透明で重ねる）
+  var ghost = document.createElement('img');
+  ghost.id='cam-ghost';
+  ghost.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s;pointer-events:none;z-index:2;';
+  if(camSide==='after' && capturedPhotos.before){
+    ghost.src = capturedPhotos.before;
+    ghost.style.opacity='0.38';
+  }
+  wrap.appendChild(ghost);
+
   // グリッド（pointer-events:none）
   var grid = document.createElement('div');
   grid.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:1;';
@@ -448,6 +458,13 @@ function buildCamUI(){
   flipBtn.style.cssText='position:absolute;top:48px;right:20px;background:rgba(255,255,255,.18);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;z-index:5;';
   wrap.appendChild(flipBtn);
 
+  // ゴーストON/OFFボタン（AFTER撮影時のみ表示）
+  var ghostBtn = document.createElement('button');
+  ghostBtn.id='cam-ghost-btn';
+  ghostBtn.style.cssText='position:absolute;top:100px;right:16px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:20px;color:#fff;padding:6px 14px;font-size:12px;cursor:pointer;z-index:5;display:'+(camSide==='after'&&capturedPhotos.before?'block':'none')+';';
+  ghostBtn.textContent='👁 重ね表示 ON';
+  wrap.appendChild(ghostBtn);
+
   // 下部背景（pointer-events:none）
   var ctrlBg = document.createElement('div');
   ctrlBg.style.cssText='position:absolute;bottom:0;left:0;right:0;height:160px;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);pointer-events:none;z-index:4;';
@@ -464,6 +481,16 @@ function buildCamUI(){
   closeBtn.addEventListener('click', closeCam);
   flipBtn.addEventListener('click', flipCam);
   shutter.addEventListener('click', shootPhoto);
+
+  // ゴーストON/OFF
+  var ghostOn = (camSide==='after' && !!capturedPhotos.before);
+  ghostBtn.addEventListener('click', function(){
+    ghostOn = !ghostOn;
+    var g=document.getElementById('cam-ghost');
+    if(g) g.style.opacity = ghostOn ? '0.38' : '0';
+    ghostBtn.textContent = ghostOn ? '👁 重ね表示 ON' : '👁 重ね表示 OFF';
+    ghostBtn.style.background = ghostOn ? 'rgba(232,196,176,.35)' : 'rgba(255,255,255,.18)';
+  });
 
   startStream();
 }
@@ -521,6 +548,11 @@ function shootPhoto(){
     camSide='after';
     var badge=document.getElementById('cam-badge');
     if(badge){ badge.textContent='AFTER 撮影'; badge.style.background='rgba(196,133,106,.9)'; }
+    // ゴースト有効化
+    var g=document.getElementById('cam-ghost');
+    if(g){ g.src=capturedPhotos.before; g.style.opacity='0.38'; }
+    var gb=document.getElementById('cam-ghost-btn');
+    if(gb){ gb.style.display='block'; gb.textContent='👁 重ね表示 ON'; gb.style.background='rgba(232,196,176,.35)'; }
   } else {
     stopCam();
     var wrap=document.getElementById('cam-wrap');
@@ -616,41 +648,4 @@ function generateSNSImage(){
     img.src=src;
   }
 
-  pending=2;
-  drawImg(r.before, 0);
-  drawImg(r.after, 544);
-}
-
-/* ── イベント設定 ── */
-document.getElementById('fab-btn').addEventListener('click', openAddModal);
-
-document.getElementById('modal-add').addEventListener('click', function(e){
-  if(e.target===this) closeModal();
-});
-document.getElementById('cancel-btn').addEventListener('click', closeModal);
-document.getElementById('save-btn').addEventListener('click', saveRecord);
-
-document.getElementById('pt-before').addEventListener('click', function(){ openCamera('before'); });
-document.getElementById('pt-after').addEventListener('click',  function(){ openCamera('after');  });
-
-document.getElementById('back-btn').addEventListener('click', function(){ showScreen('home'); });
-document.getElementById('dl-btn').addEventListener('click', downloadLatestPhotos);
-document.getElementById('sns-btn').addEventListener('click', generateSNSImage);
-document.getElementById('delete-btn').addEventListener('click', function(){ deleteClientConfirm(currentClientId); });
-
-document.getElementById('modal-sns').addEventListener('click', function(e){
-  if(e.target===this) document.getElementById('modal-sns').classList.remove('open');
-});
-document.getElementById('sns-close-btn').addEventListener('click', function(){
-  document.getElementById('modal-sns').classList.remove('open');
-});
-document.getElementById('sns-dl-btn').addEventListener('click', function(){
-  if(!snsDataUrl) return;
-  var client=clients.filter(function(c){ return c.id===currentClientId; })[0];
-  autoSave(snsDataUrl, (client?client.name:'client')+'_sns.jpg');
-});
-
-/* ── 初期化 ── */
-renderHome();
-</script>
-</b
+  pending=
