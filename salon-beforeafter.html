@@ -342,9 +342,9 @@ function buildCameraDOM(){
       <span id="cam-step-text" style="display:inline-block;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:7px 18px;font-size:12px;color:#fff;letter-spacing:.08em;">顔を楕円に合わせてください</span>
     </div>
     <div style="position:absolute;top:0;left:0;right:0;background:linear-gradient(to bottom,rgba(0,0,0,.72),transparent);padding:48px 20px 20px;display:flex;align-items:flex-start;justify-content:space-between;z-index:10;">
-      <button onclick="closeCamera()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;">✕</button>
+      <button id="cam-close-btn" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:38px;height:38px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;">✕</button>
       <div id="cam-mode-badge" style="background:rgba(44,31,26,.85);border-radius:20px;padding:6px 14px;font-size:12px;letter-spacing:.15em;color:#fff;border:1px solid rgba(255,255,255,.2);">BEFORE</div>
-      <button id="ghost-toggle-btn" onclick="toggleGhost()" style="display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 12px;font-size:11px;align-items:center;gap:5px;cursor:pointer;">👁 <span id="ghost-label">重ね表示</span></button>
+      <button id="ghost-toggle-btn" style="display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 12px;font-size:11px;align-items:center;gap:5px;cursor:pointer;">👁 <span id="ghost-label">重ね表示</span></button>
     </div>
     <div style="position:absolute;top:108px;left:12px;right:12px;display:flex;gap:6px;z-index:10;">
       <div class="indicator"><div class="ind-label">明るさ</div><div class="ind-bar-wrap"><div class="ind-bar" id="bar-brightness" style="width:0%"></div></div><div class="ind-val" id="val-brightness">—</div></div>
@@ -358,19 +358,28 @@ function buildCameraDOM(){
     <div id="cam-instruction" style="display:none;position:absolute;left:12px;right:12px;bottom:165px;z-index:10;background:rgba(0,0,0,.65);border-radius:14px;padding:10px 14px;font-size:12px;color:#fff;line-height:1.6;"></div>
     <div id="cam-flash" style="position:absolute;inset:0;background:#fff;opacity:0;z-index:30;pointer-events:none;"></div>
     <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.85),transparent);padding:20px 32px 52px;display:flex;align-items:center;justify-content:space-between;z-index:10;">
-      <div id="gallery-thumb" onclick="openGalleryPicker()" style="width:48px;height:48px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex-shrink:0;">
+      <div id="gallery-thumb" style="width:48px;height:48px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex-shrink:0;">
         <img id="gallery-thumb-img" style="width:100%;height:100%;object-fit:cover;display:none;">
         <span id="gallery-thumb-icon">🖼</span>
       </div>
-      <button onclick="shootPhoto()" style="width:72px;height:72px;border-radius:50%;background:#fff;border:3px solid rgba(255,255,255,.5);box-shadow:0 0 0 6px rgba(255,255,255,.18);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+      <button id="cam-shutter-btn" style="width:72px;height:72px;border-radius:50%;background:#fff;border:3px solid rgba(255,255,255,.5);box-shadow:0 0 0 6px rgba(255,255,255,.18);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
         <div style="width:58px;height:58px;border-radius:50%;background:#fff;border:2px solid #ddd;"></div>
       </button>
-      <button onclick="flipCamera()" style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;flex-shrink:0;">🔄</button>
+      <button id="cam-flip-btn" style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:20px;cursor:pointer;flex-shrink:0;">🔄</button>
     </div>
     <canvas id="cam-canvas" style="display:none;"></canvas>
-    <input type="file" id="gallery-input" accept="image/*" style="display:none;" onchange="handleGalleryPick(this)">
+    <input type="file" id="gallery-input" accept="image/*" style="display:none;">
   `;
   document.body.appendChild(el);
+
+  // イベントをaddEventListenerで設定
+  document.getElementById('cam-close-btn').addEventListener('click', closeCamera);
+  document.getElementById('cam-shutter-btn').addEventListener('click', shootPhoto);
+  document.getElementById('cam-flip-btn').addEventListener('click', flipCamera);
+  document.getElementById('ghost-toggle-btn').addEventListener('click', toggleGhost);
+  document.getElementById('gallery-thumb').addEventListener('click', openGalleryPicker);
+  document.getElementById('gallery-input').addEventListener('change', function(){ handleGalleryPick(this); });
+
   cv=document.getElementById('cam-canvas');
   cx=cv.getContext('2d');
 }
@@ -385,6 +394,8 @@ function destroyCameraDOM(){
 async function openCamera(side){
   camSide=side;
   closeModal();
+  // FABを非表示
+  document.querySelector('.fab').style.display='none';
   buildCameraDOM();
 
   document.getElementById('cam-mode-badge').textContent = side==='before'?'BEFORE 撮影':'AFTER 撮影';
@@ -417,14 +428,16 @@ async function startStream(){
     });
     document.getElementById('cam-video').srcObject=camStream;
   } catch(e){
-    alert('カメラへのアクセスが許可されていません。\nブラウザの設定からカメラを許可してください。');
-    closeCamera();
+    // カメラ不可でも画面は閉じない（ギャラリーから選択可能）
+    console.warn('Camera error:', e);
   }
 }
 
 function closeCamera(){
   stopAll();
   destroyCameraDOM();
+  // FABを再表示
+  document.querySelector('.fab').style.display='flex';
   document.getElementById('modal-add').classList.add('open');
 }
 function stopAll(){
@@ -631,6 +644,7 @@ function shootPhoto(){
     setTimeout(()=>{
       stopAll();
       destroyCameraDOM();
+      document.querySelector('.fab').style.display='flex';
       document.getElementById('modal-add').classList.add('open');
     },500);
   }
